@@ -1,26 +1,24 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/react-in-jsx-scope */
 import { BottomSheet, Button, FAB, Header, Icon, Text } from '@rneui/themed';
-import { useEffect, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
-import { useNoteContext } from '../navigation/StackNavigation';
+import { useCallback, useEffect, useState } from 'react';
+import { FlatList, TouchableOpacity, View } from 'react-native';
+import { INote, useNoteContext } from '../navigation/StackNavigation';
+import { useFocusEffect } from '@react-navigation/native';
 
-const Home = ({ navigation }) => {
-  const { noteList } = useNoteContext();
+const Home = ({ navigation }: { navigation: any }) => {
+  const { getNotes } = useNoteContext();
   const [showModal, setShowModal] = useState(false);
-  const [notes, setNotes] = useState([]);
+  const [notes, setNotes] = useState<Array<INote>>();
 
-  useEffect(() => {
-    console.log('lists ' + JSON.stringify(notes));
-    const unmount = navigation.addListener('focus', () => {
-      setNotes(noteList);
-      console.log('focus');
-    });
-    return () => {
-      console.log('unmounted');
-      unmount;
-    };
-  }, [noteList]);
+  console.log('home top');
+
+  useFocusEffect(
+    useCallback(() => {
+      setNotes([...getNotes]);
+      console.log('is focuse');
+    }, [getNotes])
+  );
 
   const renderBottomsheet = (
     <BottomSheet
@@ -95,26 +93,30 @@ const Home = ({ navigation }) => {
         backgroundColor="#5e6977"
         centerComponent={{
           text: 'Note App',
-          style: { fontSize: 18, fontWeight: '900' },
+          style: { fontSize: 18, fontWeight: '900', color: 'white' },
         }}
         rightComponent={
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              //
+            }}
+          >
             <Icon name="settings" color="white" />
           </TouchableOpacity>
         }
       />
-      {notes.map((item) => {
-        return (
-          <View style={{ padding: 12, backgroundColor: 'pink', marginVertical: 2 }}>
+
+      <FlatList
+        data={notes}
+        renderItem={({ item, index }) => (
+          <View key={index} style={{ padding: 12, backgroundColor: 'pink', marginVertical: 2 }}>
             <Text>{item.title}</Text>
             <Text>{item.text}</Text>
           </View>
-        );
-      })}
-
+        )}
+      />
       <FAB
         onPress={() => {
-          console.log('fab clicked' + showModal);
           setShowModal(true);
         }}
         placement="right"
